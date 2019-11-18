@@ -37,6 +37,7 @@ void Server::StartServer()
 	}
 
 	//receive messages
+	std::cout<<"Listening for messages"<<std::endl;
 	while(true)
 	{
 		unsigned char data[255];
@@ -48,13 +49,28 @@ void Server::StartServer()
 
 		if (bytes <= 0)
 		{
-			std::cout<<"no message recieved"<<std::endl;
+			//std::cout<<"no message recieved"<<std::endl;
 			continue;
 		}
 		unsigned int fromAddress = ntohl(packetFrom.sin_addr.s_addr);
 		unsigned int fromPort = ntohs(packetFrom.sin_port);
 
 		std::cout<<"message recieved from " << fromAddress << ":" << fromPort<< ". Contents: " << data<<std::endl;
+
+		sockaddr_in server;
+		server.sin_family = AF_INET;
+		server.sin_addr.s_addr = htonl(fromAddress);
+		server.sin_port = htons(fromPort);
+
+		std::string message("We got your message!");
+			std::cout<<"\tReplying with: " << message <<std::endl;
+
+		int sent_size = sendto(socketHandle, message.c_str(), message.size() + 1, 0, (sockaddr*)&server, sizeof(sockaddr_in));
+		if (sent_size != message.size() + 1)
+		{
+			std::cout<<"failed to send response packet"<<std::endl;
+			return;
+		}
 
 	}
 
