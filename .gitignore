@@ -1,4 +1,4 @@
 .vscode/
-bin/debug/*
-bin/release/*
-bin/*.o
+**/bin/debug/*
+**/bin/release/*
+**/bin/*.o

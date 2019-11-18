@@ -1,7 +1,7 @@
 CC = g++
-CLIBS = -lSDL2_image -lmingw32 -lSDL2main -lSDL2 -lwsock32
-INCLUDES = -Iinclude -IC:/CppLibraries/include/SDL2
-LIBPATH = -LC:/CppLibraries/lib
+CLIBS = -lwsock32
+INCLUDES = -Iinclude 
+LIBPATH =
 OUTPUT = test
 DEBUGOUTPUTDIR = bin/debug
 RELEASEOUTPUTDIR = bin/release
