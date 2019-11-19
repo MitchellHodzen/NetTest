@@ -41,29 +41,32 @@ void Client::SendMessage()
 	server.sin_addr.s_addr = htonl(serverAddr);
 	server.sin_port = htons(2222);
 
-	std::string message("Hello World!");
-
-	int sent_size = sendto(socketHandle, message.c_str(), message.size() + 1, 0, (sockaddr*)&server, sizeof(sockaddr_in));
-
-	if (sent_size != message.size() + 1)
+	while(true)
 	{
-		std::cout<<"failed to send packet"<<std::endl;
-		return;
+		std::string message;
+		std::getline(std::cin, message);
+
+		int sent_size = sendto(socketHandle, message.c_str(), message.size() + 1, 0, (sockaddr*)&server, sizeof(sockaddr_in));
+
+		if (sent_size != message.size() + 1)
+		{
+			std::cout<<"failed to send packet"<<std::endl;
+			continue;
+		}
+
+		//receive messages
+		unsigned char data[255];
+		unsigned int maxPacketSize = sizeof(data);
+
+		sockaddr_in packetFrom;
+		int fromLength = sizeof(packetFrom);
+		int bytes = recvfrom(socketHandle, (char*) data, maxPacketSize, 0, (sockaddr*)&packetFrom, &fromLength);
+
+		unsigned int fromAddress = ntohl(packetFrom.sin_addr.s_addr);
+		unsigned int fromPort = ntohs(packetFrom.sin_port);
+
+		std::cout<<"message recieved from " << fromAddress << ":" << fromPort<< ". Contents: " << data<<std::endl;
 	}
-
-	
-	//receive messages
-	unsigned char data[255];
-	unsigned int maxPacketSize = sizeof(data);
-
-	sockaddr_in packetFrom;
-	int fromLength = sizeof(packetFrom);
-	int bytes = recvfrom(socketHandle, (char*) data, maxPacketSize, 0, (sockaddr*)&packetFrom, &fromLength);
-
-	unsigned int fromAddress = ntohl(packetFrom.sin_addr.s_addr);
-	unsigned int fromPort = ntohs(packetFrom.sin_port);
-
-	std::cout<<"message recieved from " << fromAddress << ":" << fromPort<< ". Contents: " << data<<std::endl;
 
 	closesocket(socketHandle);
 
