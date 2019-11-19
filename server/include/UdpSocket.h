@@ -2,10 +2,10 @@
 #include <iostream>
 #include <winsock2.h>
 
-class KSocket
+class UdpSocket
 {
 public:
-	KSocket(unsigned short listenPort)
+	UdpSocket(unsigned short listenPort)
 	{
 		this->listenPort = listenPort;
 		listenAddress.sin_family = AF_INET;
@@ -13,7 +13,7 @@ public:
 		listenAddress.sin_port = htons(listenPort);
 	}
 
-	~KSocket()
+	~UdpSocket()
 	{
 		closesocket(socketHandle);
 		WSACleanup();
@@ -73,7 +73,7 @@ public:
 	}
 
 	//Receive a message which will be written to the given databuffer. Returns true if a message was recieved, false otherwise
-	bool RecieveMessage(char* dataBuffer, unsigned int bufferSize, unsigned int* fromAddress, unsigned short* fromPort)
+	bool RecieveMessage(char * dataBuffer, unsigned int bufferSize, unsigned int* fromAddress, unsigned short* fromPort)
 	{
 		sockaddr_in packetFrom;
 		int fromLength = sizeof(packetFrom);
@@ -102,11 +102,8 @@ public:
 	}
 
 	//Send a message to the set send address. Returns true if message was successfully sent, false otherwise
-	bool SendMessage(const char* message, unsigned int messageLength)
+	bool Send(const char * message, unsigned int messageLength)
 	{
-
-		std::cout<<"Sending Message: " << message << std::endl;
-
 		int sent_size = sendto(socketHandle, message, messageLength, 0, (sockaddr*)&sendAddress, addressSize);
 		if (sent_size != messageLength)
 		{
