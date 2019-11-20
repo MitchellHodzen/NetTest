@@ -1,6 +1,6 @@
 CC = g++
 CLIBS = -lwsock32
-INCLUDES = -Iinclude 
+INCLUDES = -Iinclude -I../lib
 LIBPATH =
 OUTPUT = test
 DEBUGOUTPUTDIR = bin/debug
