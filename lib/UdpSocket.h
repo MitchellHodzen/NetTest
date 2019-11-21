@@ -72,13 +72,25 @@ public:
 		return true;
 	}
 
+	//Send a message to the set send address. Returns true if message was successfully sent, false otherwise
+	bool Send(const void * message, unsigned int messageSize)
+	{
+		int sent_size = sendto(socketHandle, (char*)message, messageSize, 0, (sockaddr*)&sendAddress, addressSize);
+		if (sent_size != messageSize)
+		{
+			std::cout<<"failed to send response packet"<<std::endl;
+			return false;
+		}
+		return true;
+	}
+
 	//Receive a message which will be written to the given databuffer. Returns true if a message was recieved, false otherwise
-	bool RecieveMessage(char * dataBuffer, unsigned int bufferSize, unsigned int* fromAddress, unsigned short* fromPort)
+	bool RecieveMessage(void * dataBuffer, unsigned int bufferSize, unsigned int* fromAddress, unsigned short* fromPort)
 	{
 		sockaddr_in packetFrom;
 		int fromLength = sizeof(packetFrom);
 
-		int bytes = recvfrom(socketHandle, dataBuffer, bufferSize, 0, (sockaddr*)&packetFrom, &fromLength);
+		int bytes = recvfrom(socketHandle, (char*)dataBuffer, bufferSize, 0, (sockaddr*)&packetFrom, &fromLength);
 
 		if (bytes <= 0)
 		{
@@ -98,18 +110,6 @@ public:
 			*fromPort = ntohs(packetFrom.sin_port);
 		}
 
-		return true;
-	}
-
-	//Send a message to the set send address. Returns true if message was successfully sent, false otherwise
-	bool Send(const char * message, unsigned int messageLength)
-	{
-		int sent_size = sendto(socketHandle, message, messageLength, 0, (sockaddr*)&sendAddress, addressSize);
-		if (sent_size != messageLength)
-		{
-			std::cout<<"failed to send response packet"<<std::endl;
-			return false;
-		}
 		return true;
 	}
 	

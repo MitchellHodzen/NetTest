@@ -11,9 +11,9 @@ void Client::SendMessage()
 
 			if (udpSocket.SetSendAddress(127, 0, 0, 1, 2222))
 			{
-				std::string message;
-				std::getline(std::cin, message);
-				if (udpSocket.Send(message.c_str(), message.size() + 1))
+				int number = 5;
+				int size = sizeof(int);
+				if (udpSocket.Send(&number, size))
 				{
 					bool receivedResponse = false;
 
@@ -26,7 +26,7 @@ void Client::SendMessage()
 					while(!receivedResponse)
 					{
 
-						if (udpSocket.RecieveMessage((char *)dataBuffer, bufferSize, &fromAddr, &fromPort))
+						if (udpSocket.RecieveMessage(dataBuffer, bufferSize, &fromAddr, &fromPort))
 						{
 							std::cout<<"message recieved from " << fromAddr << ":" << fromPort<< ". Contents: " << dataBuffer <<std::endl;
 							receivedResponse = true;

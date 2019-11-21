@@ -14,14 +14,19 @@ void Server::StartServer()
 
 		unsigned int fromAddr;
 		unsigned short fromPort;
-		
+
 		while(true)
 		{
-			bool receivedMessage = udpSocket.RecieveMessage((char *)dataBuffer, bufferSize, &fromAddr, &fromPort);
+			bool receivedMessage = udpSocket.RecieveMessage(dataBuffer, bufferSize, &fromAddr, &fromPort);
 
 			if (receivedMessage)
 			{
-				std::cout<<"message recieved from " << fromAddr << ":" << fromPort<< ". Contents: " << dataBuffer <<std::endl;
+				unsigned char byte1 = dataBuffer[0];
+				unsigned char byte2 = dataBuffer[1];
+				unsigned char byte3 = dataBuffer[2];
+				unsigned char byte4 = dataBuffer[3];
+				int number = byte1 | (byte2<<8) | (byte3<<16) | (byte4<<24);
+				std::cout<<"message recieved from " << fromAddr << ":" << fromPort<< ". Contents: " << number <<std::endl;
 
 				if (udpSocket.SetSendAddress(fromAddr, fromPort))
 				{
