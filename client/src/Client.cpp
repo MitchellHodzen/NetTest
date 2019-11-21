@@ -17,13 +17,14 @@ void Client::SendMessage()
 				{
 					bool receivedResponse = false;
 
+					unsigned char dataBuffer[255];
+					unsigned int bufferSize = sizeof(dataBuffer);
+
+					unsigned int fromAddr;
+					unsigned short fromPort;
+					
 					while(!receivedResponse)
 					{
-						unsigned char dataBuffer[255];
-						unsigned int bufferSize = sizeof(dataBuffer);
-
-						unsigned int fromAddr;
-						unsigned short fromPort;
 
 						if (udpSocket.RecieveMessage((char *)dataBuffer, bufferSize, &fromAddr, &fromPort))
 						{
