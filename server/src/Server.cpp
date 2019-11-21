@@ -8,13 +8,15 @@ void Server::StartServer()
 	{
 		//receive messages
 		std::cout<<"Listening for messages"<<std::endl;
+
+		unsigned char dataBuffer[255];
+		unsigned int bufferSize = sizeof(dataBuffer);
+
+		unsigned int fromAddr;
+		unsigned short fromPort;
+		
 		while(true)
 		{
-			unsigned char dataBuffer[255];
-			unsigned int bufferSize = sizeof(dataBuffer);
-
-			unsigned int fromAddr;
-			unsigned short fromPort;
 			bool receivedMessage = udpSocket.RecieveMessage((char *)dataBuffer, bufferSize, &fromAddr, &fromPort);
 
 			if (receivedMessage)
