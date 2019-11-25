@@ -94,7 +94,6 @@ public:
 
 		if (bytes <= 0)
 		{
-			//std::cout<<"no message recieved"<<std::endl;
 			return false;
 		}
 
