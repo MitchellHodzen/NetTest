@@ -24,26 +24,17 @@ void Server::StartServer()
 			{
 				std::cout<<"Message recieved from " << fromAddr << std::endl;
 
-				unsigned int bytes = dataBuffer[0] | (dataBuffer[1]<<8) | (dataBuffer[2]<<16) | (dataBuffer[3]<<24);
-				//unsigned int networkId = byte1 | (byte2<<8) | (byte3<<16) | (byte4<<24);
-				float myOtherFloat = *(reinterpret_cast<float*>(&bytes));
+				unsigned int networkId = dataBuffer[0] | (dataBuffer[1]<<8) | (dataBuffer[2]<<16) | (dataBuffer[3]<<24);
 
-				std::cout<<"\tNetwork ID: " << myOtherFloat <<std::endl;
+				unsigned int intBytes = dataBuffer[4] | (dataBuffer[5]<<8) | (dataBuffer[6]<<16) | (dataBuffer[7]<<24);
+				int myInt = *(reinterpret_cast<int*>(&intBytes));
 
-				/*unsigned char byte5 = dataBuffer[4];
-				unsigned char byte6 = dataBuffer[5];
-				unsigned char byte7 = dataBuffer[6];
-				unsigned char byte8 = dataBuffer[7];
-				int integer = byte5 | (byte6<<8) | (byte7<<16) | (byte8<<24);
-				std::cout<<"\tInteger: " << integer <<std::endl;
+				unsigned int floatBytes = dataBuffer[8] | (dataBuffer[9]<<8) | (dataBuffer[10]<<16) | (dataBuffer[11]<<24);
+				float myFloat = *(reinterpret_cast<float*>(&floatBytes));
 
-				unsigned char byte9 = dataBuffer[0];
-				unsigned char byte10 = dataBuffer[1];
-				unsigned char byte11 = dataBuffer[2];
-				unsigned char byte12 = dataBuffer[3];
-				float floatingPoint = byte9 | (byte10<<8) | (byte11<<16) | (byte12<<24);
-				std::cout<<"\tFloating Point: " << floatingPoint <<std::endl;
-*/
+				std::cout<<"\tNetwork ID: " << networkId <<std::endl;
+				std::cout<<"\tInteger: " << myInt <<std::endl;
+				std::cout<<"\tFloat: " << myFloat <<std::endl;
 
 				if (udpSocket.SetSendAddress(fromAddr, fromPort))
 				{

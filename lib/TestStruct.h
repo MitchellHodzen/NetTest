@@ -2,8 +2,8 @@
 
 struct TestStruct
 {
-	//unsigned int networkId;
-	//int integer;
+	unsigned int networkId;
+	int integer;
 	float floatingPoint;
 };
 
