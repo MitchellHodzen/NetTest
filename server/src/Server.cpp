@@ -24,17 +24,11 @@ void Server::StartServer()
 			{
 				std::cout<<"Message recieved from " << fromAddr << std::endl;
 
-				unsigned int networkId = dataBuffer[0] | (dataBuffer[1]<<8) | (dataBuffer[2]<<16) | (dataBuffer[3]<<24);
+				TestStruct testStruct(dataBuffer, bufferSize);
 
-				unsigned int intBytes = dataBuffer[4] | (dataBuffer[5]<<8) | (dataBuffer[6]<<16) | (dataBuffer[7]<<24);
-				int myInt = *(reinterpret_cast<int*>(&intBytes));
-
-				unsigned int floatBytes = dataBuffer[8] | (dataBuffer[9]<<8) | (dataBuffer[10]<<16) | (dataBuffer[11]<<24);
-				float myFloat = *(reinterpret_cast<float*>(&floatBytes));
-
-				std::cout<<"\tNetwork ID: " << networkId <<std::endl;
-				std::cout<<"\tInteger: " << myInt <<std::endl;
-				std::cout<<"\tFloat: " << myFloat <<std::endl;
+				std::cout<<"\tNetwork ID: " << testStruct.networkId <<std::endl;
+				std::cout<<"\tInteger: " << testStruct.integer <<std::endl;
+				std::cout<<"\tFloat: " << testStruct.floatingPoint <<std::endl;
 
 				if (udpSocket.SetSendAddress(fromAddr, fromPort))
 				{

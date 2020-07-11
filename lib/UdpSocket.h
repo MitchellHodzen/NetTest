@@ -78,7 +78,7 @@ public:
 		int sent_size = sendto(socketHandle, (char*)message, messageSize, 0, (sockaddr*)&sendAddress, addressSize);
 		if (sent_size != messageSize)
 		{
-			std::cout<<"failed to send response packet"<<std::endl;
+			std::cout<<"failed to send packet. Message Size: " << messageSize << ". Sent Size: " << sent_size << std::endl;
 			return false;
 		}
 		return true;
