@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 
 enum MSG_TYPE {CONNECT_REQUEST = 0, CONNECT_RESPONSE = 1, DISCONNECT = 2, TEXT = 3, ACK = 4};
 
@@ -97,6 +98,24 @@ public:
 			{
 				this->text[i] = text[i];
 			}
+		}
+	}
+
+	MSG_TEXT(unsigned int networkId, std::string text)
+	{
+		this->messageType = MSG_TYPE::TEXT;
+		this->networkId = networkId;
+		this->textBufferLength = text.size() + 1;
+		if (this->textBufferLength > MAX_TEXT_BUFFER_LENGTH)
+		{
+			this-> textBufferLength = MAX_TEXT_BUFFER_LENGTH;
+		}
+
+		//Copy the passed in text into the text buffer to be sent
+		const char* text_array = text.c_str();
+		for (int i = 0; i < this->textBufferLength; ++i)
+		{
+			this->text[i] = text_array[i];
 		}
 	}
 
