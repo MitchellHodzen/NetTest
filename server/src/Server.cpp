@@ -28,13 +28,7 @@ void Server::StartServer()
 				std::cout<<"\tNetwork ID: " << messagePacket.networkId <<std::endl;
 				std::cout<<"\tText Buffer Length: " << messagePacket.textBufferLength <<std::endl;
 				std::cout<<"\tText: " << messagePacket.text << std::endl;
-				/*
-				TestStruct testStruct(dataBuffer, bufferSize);
-
-				std::cout<<"\tNetwork ID: " << testStruct.networkId <<std::endl;
-				std::cout<<"\tInteger: " << testStruct.integer <<std::endl;
-				std::cout<<"\tFloat: " << testStruct.floatingPoint <<std::endl;
-				*/
+				
 				if (udpSocket.SetSendAddress(fromAddr, fromPort))
 				{
 					std::string message("Message recieved by server");
