@@ -1,6 +1,6 @@
 #include "Server.h"
 #include "UdpSocket.h"
-#include "TestStruct.h"
+#include "MessageStructs.h"
 
 void Server::StartServer()
 {
@@ -23,7 +23,11 @@ void Server::StartServer()
 			if (receivedMessage)
 			{
 				std::cout<<"Message recieved from " << fromAddr << std::endl;
-				std::cout<<"\tMessage: " << dataBuffer << std::endl;
+				MSG_TEXT messagePacket(dataBuffer, bufferSize);
+				std::cout<<"\tMessage Type: " << messagePacket.messageType <<std::endl;
+				std::cout<<"\tNetwork ID: " << messagePacket.networkId <<std::endl;
+				std::cout<<"\tText Buffer Length: " << messagePacket.textBufferLength <<std::endl;
+				std::cout<<"\tText: " << messagePacket.text << std::endl;
 				/*
 				TestStruct testStruct(dataBuffer, bufferSize);
 

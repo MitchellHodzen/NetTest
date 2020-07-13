@@ -1,7 +1,7 @@
 #include "Client.h"
 #include "UdpSocket.h"
 #include <string>
-#include "TestStruct.h"
+#include "MessageStructs.h"
 
 void Client::SendMessage()
 {
@@ -61,9 +61,13 @@ void Client::SendMessage()
 				test.floatingPoint = 14.8495f;
 				int size = sizeof(TestStruct);
 				*/
-				
+
+
+				MSG_TEXT messagePacket(0, message.size() + 1, message.c_str());
+				int size = sizeof(MSG_TEXT);
 				//if (udpSocket.Send(&test, size))
-				if (udpSocket.Send(message.c_str(), message.size() + 1))
+				//if (udpSocket.Send(message.c_str(), message.size() + 1))
+				if (udpSocket.Send(&messagePacket, size))
 				{
 					bool receivedResponse = false;
 
