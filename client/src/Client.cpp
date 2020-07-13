@@ -11,6 +11,7 @@ void Client::SendMessage()
 		std::cout<<"Input IP and Port in aaaa.bbbb.cccc.dddd:xxxx format: ";
 		std::string ipInput;
 		std::cin >> ipInput;
+		std::cin.ignore();
 
 		size_t last = 0;
 		size_t next = 0;
@@ -46,35 +47,46 @@ void Client::SendMessage()
 		//if (udpSocket.SetSendAddress(127, 0, 0, 1, 2222))
 		if (udpSocket.SetSendAddress(partA, partB, partC, partD, port))
 		{
-			TestStruct test;
-			test.networkId = 500;
-			test.integer = -15;
-			test.floatingPoint = 14.8495f;
-			int size = sizeof(TestStruct);
-			
-			if (udpSocket.Send(&test, size))
+			while(true)
 			{
-				bool receivedResponse = false;
+				std::cout<<"Message to send: ";
+				std::string message;
+				getline(std::cin, message);
+				std::cout<<"Sending message..."<<std::endl;
 
-				unsigned char dataBuffer[255];
-				unsigned int bufferSize = sizeof(dataBuffer);
-
-				unsigned int fromAddr;
-				unsigned short fromPort;
+				/*
+				TestStruct test;
+				test.networkId = 500;
+				test.integer = -15;
+				test.floatingPoint = 14.8495f;
+				int size = sizeof(TestStruct);
+				*/
 				
-				while(!receivedResponse)
+				//if (udpSocket.Send(&test, size))
+				if (udpSocket.Send(message.c_str(), message.size() + 1))
 				{
+					bool receivedResponse = false;
 
-					if (udpSocket.RecieveMessage(dataBuffer, bufferSize, &fromAddr, &fromPort))
+					unsigned char dataBuffer[255];
+					unsigned int bufferSize = sizeof(dataBuffer);
+
+					unsigned int fromAddr;
+					unsigned short fromPort;
+					
+					while(!receivedResponse)
 					{
-						std::cout<<"message recieved from " << fromAddr << ":" << fromPort<< ". Contents: " << dataBuffer <<std::endl;
-						receivedResponse = true;
+
+						if (udpSocket.RecieveMessage(dataBuffer, bufferSize, &fromAddr, &fromPort))
+						{
+							std::cout<<"Message recieved from " << fromAddr << ":" << fromPort<< ". Contents: " << dataBuffer <<std::endl;
+							receivedResponse = true;
+						}
 					}
 				}
-			}
-			else
-			{
-				std::cout<<"Failed to send packet"<<std::endl;
+				else
+				{
+					std::cout<<"Failed to send packet"<<std::endl;
+				}
 			}
 		}
 		else

@@ -20,7 +20,7 @@ $(OUTPUT): $(OBJECTS)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	@mkdir -p $(@D)
-	$(CC) $(INCLUDES) $(LIBPATH) $(CLIBS) -std=$(CPPVERSION) -c $< -o $@
+	$(CC) $(INCLUDES) $(LIBPATH) $(CLIBS) -std=$(CPPVERSION) -c -g $< -o $@
 
 clean:
 	rm $(OBJDIR)/*.o $(DEBUGOUTPUTDIR)/$(OUTPUT) #$(RELEASEOUTPUTDIR)/$(OUTPUT)
