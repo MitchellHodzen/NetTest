@@ -74,8 +74,27 @@ void Client::SendMessage()
 
 						if (udpSocket.RecieveMessage(dataBuffer, bufferSize, &fromAddr, &fromPort))
 						{
-							std::cout<<"Message recieved from " << fromAddr << ":" << fromPort<< ". Contents: " << dataBuffer <<std::endl;
-							receivedResponse = true;
+							std::cout<<"Message recieved from " << fromAddr << ":" << fromPort <<std::endl;
+
+							MSG_TYPE messageType = MESSAGE::DetermineMessageType(dataBuffer, bufferSize);
+
+							switch(messageType)
+							{
+								case MSG_TYPE::ACK:
+								{
+									std::cout<<"Message ACK recieved"<<std::endl;
+									receivedResponse = true;
+									break;
+								}
+								case MSG_TYPE::DISCONNECT:
+								{
+									std::cout<<"Disconnected from server"<<std::endl;
+									receivedResponse = true;
+									break;
+								}
+								default:
+									break;
+							}
 						}
 					}
 				}

@@ -1,8 +1,20 @@
 #pragma once
 #include <string>
 
-enum MSG_TYPE {CONNECT_REQUEST = 0, CONNECT_RESPONSE = 1, DISCONNECT = 2, TEXT = 3, ACK = 4};
-
+enum MSG_TYPE {INVALID = 0, CONNECT_REQUEST = 1, CONNECT_RESPONSE = 2, DISCONNECT = 3, TEXT = 4, ACK = 5};
+namespace MESSAGE
+{
+	MSG_TYPE DetermineMessageType(unsigned char* dataBuffer, unsigned int bufferSize)
+	{
+		if (dataBuffer == nullptr || bufferSize < 4)
+		{
+			return MSG_TYPE::INVALID;
+		}
+		//The first four bytes of every message defines the enum of the message type
+		MSG_TYPE messageType = (MSG_TYPE) (dataBuffer[0] | (dataBuffer[1]<<8) | (dataBuffer[2]<<16) | (dataBuffer[3]<<24));
+		return messageType;
+	}
+}
 struct MSG_CONNECT_REQUEST
 {
 public:
@@ -35,8 +47,7 @@ private:
 
 	void BuildFromByteArray(unsigned char* dataBuffer, unsigned int bufferSize)
 	{
-		MSG_TYPE messageType = (MSG_TYPE) (dataBuffer[0] | (dataBuffer[1]<<8) | (dataBuffer[2]<<16) | (dataBuffer[3]<<24));
-		this->messageType = messageType;
+		this->messageType = MSG_TYPE::CONNECT_RESPONSE;
 
 		unsigned int networkId = dataBuffer[4] | (dataBuffer[5]<<8) | (dataBuffer[6]<<16) | (dataBuffer[7]<<24);
 		this->networkId = networkId;
@@ -64,8 +75,7 @@ private:
 
 	void BuildFromByteArray(unsigned char* dataBuffer, unsigned int bufferSize)
 	{
-		MSG_TYPE messageType = (MSG_TYPE) (dataBuffer[0] | (dataBuffer[1]<<8) | (dataBuffer[2]<<16) | (dataBuffer[3]<<24));
-		this->messageType = messageType;
+		this->messageType = MSG_TYPE::DISCONNECT;
 
 		unsigned int networkId = dataBuffer[4] | (dataBuffer[5]<<8) | (dataBuffer[6]<<16) | (dataBuffer[7]<<24);
 		this->networkId = networkId;
@@ -128,8 +138,7 @@ private:
 
 	void BuildFromByteArray(unsigned char* dataBuffer, unsigned int bufferSize)
 	{
-		MSG_TYPE messageType = (MSG_TYPE) (dataBuffer[0] | (dataBuffer[1]<<8) | (dataBuffer[2]<<16) | (dataBuffer[3]<<24));
-		this->messageType = messageType;
+		this->messageType = MSG_TYPE::TEXT;
 
 		unsigned int networkId = dataBuffer[4] | (dataBuffer[5]<<8) | (dataBuffer[6]<<16) | (dataBuffer[7]<<24);
 		this->networkId = networkId;
@@ -148,6 +157,34 @@ private:
 			this->text[i] = dataBuffer[bufferTextStart + i];
 		}
 
+	}
+};
+
+struct MSG_ACK
+{
+public:
+	MSG_TYPE messageType;
+	unsigned int networkId;
+
+	MSG_ACK(unsigned int networkId)
+	{
+		this->messageType = MSG_TYPE::ACK;
+		this->networkId = networkId;
+	}
+
+	MSG_ACK(unsigned char* dataBuffer, unsigned int bufferSize)
+	{
+		BuildFromByteArray(dataBuffer, bufferSize);
+	}
+
+private:
+
+	void BuildFromByteArray(unsigned char* dataBuffer, unsigned int bufferSize)
+	{
+		this->messageType = MSG_TYPE::ACK;
+
+		unsigned int networkId = dataBuffer[4] | (dataBuffer[5]<<8) | (dataBuffer[6]<<16) | (dataBuffer[7]<<24);
+		this->networkId = networkId;
 	}
 };
 

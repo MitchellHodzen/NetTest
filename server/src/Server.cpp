@@ -28,12 +28,12 @@ void Server::StartServer()
 				std::cout<<"\tNetwork ID: " << messagePacket.networkId <<std::endl;
 				std::cout<<"\tText Buffer Length: " << messagePacket.textBufferLength <<std::endl;
 				std::cout<<"\tText: " << messagePacket.text << std::endl;
-				
+
 				if (udpSocket.SetSendAddress(fromAddr, fromPort))
 				{
-					std::string message("Message recieved by server");
-					std::cout<<"\tReplying with: " << message.c_str() << std::endl;
-					if(!udpSocket.Send(message.c_str(), message.size() + 1))
+					MSG_ACK ack(messagePacket.networkId);
+					std::cout<<"\tAcking message" << std::endl;
+					if(!udpSocket.Send(&ack, sizeof(MSG_ACK)))
 					{
 						std::cout<<"Response unsuccessful"<<std::endl;
 					}
