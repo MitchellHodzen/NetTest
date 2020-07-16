@@ -29,21 +29,77 @@ void Server::StartServer()
 
 			if (receivedMessage)
 			{
-				std::cout<<"Message recieved from " << fromAddr << std::endl;
-				MSG_TEXT messagePacket(dataBuffer, bufferSize);
-				std::cout<<"\tMessage Type: " << messagePacket.messageType <<std::endl;
-				std::cout<<"\tNetwork ID: " << messagePacket.networkId <<std::endl;
-				std::cout<<"\tText Buffer Length: " << messagePacket.textBufferLength <<std::endl;
-				std::cout<<"\tText: " << messagePacket.text << std::endl;
 
-				if (udpSocket.SetSendAddress(fromAddr, fromPort))
+				MSG_TYPE messageType = MESSAGE::DetermineMessageType(dataBuffer, bufferSize);
+
+				switch(messageType)
 				{
-					MSG_ACK ack(messagePacket.networkId);
-					std::cout<<"\tAcking message" << std::endl;
-					if(!udpSocket.Send(&ack, sizeof(MSG_ACK)))
+					case MSG_TYPE::ACK:
 					{
-						std::cout<<"Response unsuccessful"<<std::endl;
+						std::cout<<"Ack packet recieved from " << fromAddr << ":" << fromPort <<std::endl;
+						break;
 					}
+					case MSG_TYPE::DISCONNECT:
+					{
+						std::cout<<"Disconnected packet recieved from " << fromAddr << ":" << fromPort <<std::endl;
+						break;
+					}
+					case MSG_TYPE::CONNECT_REQUEST:
+					{
+						std::cout<<"Connect Request packet recieved from " << fromAddr << ":" << fromPort <<std::endl;
+						unsigned int networkId;
+						if (AttemptNewConnection(fromAddr, &networkId))
+						{
+							bool failedConnection = false;
+							if (udpSocket.SetSendAddress(fromAddr, fromPort))
+							{
+								MSG_CONNECT_RESPONSE connectResponse(networkId);
+								if(udpSocket.Send(&connectResponse, sizeof(MSG_CONNECT_RESPONSE)))
+								{
+									std::cout<<"Successfully connected " << fromAddr << ":" << fromPort << " with network ID " << networkId << std::endl;
+								}
+								else
+								{
+									std::cout<<"Failed to send connection response"<<std::endl;
+									failedConnection = true;
+								}
+							}
+							else
+							{
+								std::cout<<"Failed to set send address"<<std::endl;
+								failedConnection = true;
+							}
+
+							//If the connection failed, get back the network ID
+							if (failedConnection)
+							{
+								DisconnectSession(fromAddr);
+							}
+						}
+						break;
+					}
+					case MSG_TYPE::TEXT:
+					{
+						std::cout<<"Message recieved from " << fromAddr << std::endl;
+						MSG_TEXT messagePacket(dataBuffer, bufferSize);
+						std::cout<<"\tMessage Type: " << messagePacket.messageType <<std::endl;
+						std::cout<<"\tNetwork ID: " << messagePacket.networkId <<std::endl;
+						std::cout<<"\tText Buffer Length: " << messagePacket.textBufferLength <<std::endl;
+						std::cout<<"\tText: " << messagePacket.text << std::endl;
+
+						if (udpSocket.SetSendAddress(fromAddr, fromPort))
+						{
+							MSG_ACK ack(messagePacket.networkId);
+							std::cout<<"\tAcking message" << std::endl;
+							if(!udpSocket.Send(&ack, sizeof(MSG_ACK)))
+							{
+								std::cout<<"Response unsuccessful"<<std::endl;
+							}
+						}
+						break;
+					}
+					default:
+						break;
 				}
 			}
 		}
