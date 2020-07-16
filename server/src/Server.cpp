@@ -48,7 +48,10 @@ void Server::StartServer()
 					{
 						std::cout<<"Connect Request packet recieved from " << fromAddr << ":" << fromPort <<std::endl;
 						unsigned int networkId;
-						if (AttemptNewConnection(fromAddr, &networkId))
+						Address address;
+						address.address = fromAddr;
+						address.port = fromPort;
+						if (AttemptNewConnection(address, &networkId))
 						{
 							bool failedConnection = false;
 							if (udpSocket.SetSendAddress(fromAddr, fromPort))
@@ -73,7 +76,7 @@ void Server::StartServer()
 							//If the connection failed, get back the network ID
 							if (failedConnection)
 							{
-								DisconnectSession(fromAddr);
+								DisconnectSession(address);
 							}
 						}
 						break;
@@ -107,7 +110,7 @@ void Server::StartServer()
 }
 
 
-bool Server::AttemptNewConnection(unsigned int address, unsigned int* networkId)
+bool Server::AttemptNewConnection(Address address, unsigned int* networkId)
 {
 	//If the address is already connected, use that network ID
 	if (addressNetworkIdMap.find(address) != addressNetworkIdMap.end())
@@ -120,7 +123,7 @@ bool Server::AttemptNewConnection(unsigned int address, unsigned int* networkId)
 	//If there are no available network IDs, reject connection
 	if (availableNetworkIds.empty())
 	{
-		std::cout<<"Connection from address " << address << " refused, no more network IDs available"<<std::endl;
+		std::cout<<"Connection from address " << address.address << ":" << address.port << " refused, no more network IDs available"<<std::endl;
 		return false;
 	}
 
@@ -131,7 +134,7 @@ bool Server::AttemptNewConnection(unsigned int address, unsigned int* networkId)
 	*networkId = nextNetworkId;
 	return true;
 }
-void Server::DisconnectSession(unsigned int address)
+void Server::DisconnectSession(Address address)
 {
 
 	//Only disconnect if the address isn't connected

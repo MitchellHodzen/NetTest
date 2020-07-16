@@ -5,7 +5,12 @@
 
 void Client::SendMessage()
 {
-	UdpSocket udpSocket(3333);
+	std::cout<<"Enter port to receive on: ";
+	std::string portToOpenInput;
+	std::cin >> portToOpenInput;
+	unsigned short portToOpen = std::stoi(portToOpenInput);
+	std::cout<<"Listening on port " << portToOpen << std::endl;
+	UdpSocket udpSocket(portToOpen);
 	if (udpSocket.Initialize())
 	{
 		std::cout<<"Input IP and Port in aaaa.bbbb.cccc.dddd:xxxx format: ";
