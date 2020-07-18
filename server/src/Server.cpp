@@ -101,10 +101,11 @@ void Server::StartServer()
 bool Server::AttemptNewConnection(Address address, unsigned int* networkId)
 {
 	//If the address is already connected, use that network ID
-	if (addressNetworkIdMap.find(address) != addressNetworkIdMap.end())
+	std::unordered_map<Address, unsigned int>::iterator idIterator = addressNetworkIdMap.find(address);
+	if (idIterator != addressNetworkIdMap.end())
 	{
 		//If not, map the address to the network ID
-		*networkId = addressNetworkIdMap.at(address);
+		*networkId = idIterator->second;
 		return true;
 	}
 
@@ -193,10 +194,11 @@ void Server::DisconnectSession(Address address)
 void Server::FreeNetworkId(Address address)
 {
 	//Only disconnect if the address isn't connected
-	if (addressNetworkIdMap.find(address) != addressNetworkIdMap.end())
+	std::unordered_map<Address, unsigned int>::iterator idIterator = addressNetworkIdMap.find(address);
+	if (idIterator != addressNetworkIdMap.end())
 	{
 		//Get the network ID associated with that address
-		unsigned int networkId = addressNetworkIdMap.at(address);
+		unsigned int networkId = idIterator->second;
 		//Remove value from address network ID map
 		addressNetworkIdMap.erase(address);
 		//Add the network ID back to the available network IDs
