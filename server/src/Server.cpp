@@ -32,6 +32,10 @@ void Server::StartServer()
 
 				MSG_TYPE messageType = MESSAGE::DetermineMessageType(dataBuffer, bufferSize);
 
+				Address address;
+				address.address = fromAddr;
+				address.port = fromPort;
+
 				switch(messageType)
 				{
 					case MSG_TYPE::ACK:
@@ -48,9 +52,6 @@ void Server::StartServer()
 					{
 						std::cout<<"Connect Request packet recieved from " << fromAddr << ":" << fromPort <<std::endl;
 						unsigned int networkId;
-						Address address;
-						address.address = fromAddr;
-						address.port = fromPort;
 						bool failedConnection = false;
 
 						if (AttemptNewConnection(address, &networkId))
@@ -65,21 +66,26 @@ void Server::StartServer()
 					}
 					case MSG_TYPE::TEXT:
 					{
-						std::cout<<"Message packet recieved from " << fromAddr << ":" << fromPort <<std::endl;
 						MSG_TEXT messagePacket(dataBuffer, bufferSize);
-						std::cout<<"\tMessage Type: " << messagePacket.messageType <<std::endl;
-						std::cout<<"\tNetwork ID: " << messagePacket.networkId <<std::endl;
-						std::cout<<"\tText Buffer Length: " << messagePacket.textBufferLength <<std::endl;
-						std::cout<<"\tText: " << messagePacket.text << std::endl;
-
-						if (udpSocket->SetSendAddress(fromAddr, fromPort))
+						std::cout<<"Message packet recieved from " << fromAddr << ":" << fromPort << " with ID " << messagePacket.networkId <<std::endl;
+						if (UserConnected(address, messagePacket.networkId))
 						{
-							MSG_ACK ack(messagePacket.networkId);
-							std::cout<<"\tAcking message" << std::endl;
-							if(!udpSocket->Send(&ack, sizeof(MSG_ACK)))
+							std::cout<<"\tText Buffer Length: " << messagePacket.textBufferLength <<std::endl;
+							std::cout<<"\tText: " << messagePacket.text << std::endl;
+
+							if (udpSocket->SetSendAddress(fromAddr, fromPort))
 							{
-								std::cout<<"Response unsuccessful"<<std::endl;
+								MSG_ACK ack(messagePacket.networkId);
+								std::cout<<"\tAcking message" << std::endl;
+								if(!udpSocket->Send(&ack, sizeof(MSG_ACK)))
+								{
+									std::cout<<"\tResponse unsuccessful"<<std::endl;
+								}
 							}
+						}
+						else
+						{
+							std::cout<<"Message rejected, user not connected or has incorrect message ID"<<std::endl;
 						}
 						break;
 					}
@@ -114,6 +120,28 @@ bool Server::AttemptNewConnection(Address address, unsigned int* networkId)
 	availableNetworkIds.pop();
 	addressNetworkIdMap.insert_or_assign(address, nextNetworkId);
 	*networkId = nextNetworkId;
+	return true;
+}
+
+bool Server::UserConnected(Address address, unsigned int networkId)
+{
+	//If the address is already connected, use that network ID
+	std::unordered_map<Address, unsigned int>::iterator idIterator = addressNetworkIdMap.find(address);
+	if (idIterator == addressNetworkIdMap.end())
+	{
+		//If the address isn't connected, return false
+		return false;
+	}
+	//If not, map the address to the network ID
+	unsigned int addressNetworkId = idIterator->second;
+
+	if (networkId != addressNetworkId)
+	{
+		//If address is connected, but has a different network ID, reject it
+		return false;
+	}
+
+	//If the address is connected, and the network ID is the same, accept
 	return true;
 }
 

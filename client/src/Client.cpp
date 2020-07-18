@@ -107,7 +107,7 @@ void Client::SendMessage()
 					getline(std::cin, message);
 					std::cout<<"Sending message..."<<std::endl;
 
-					MSG_TEXT messagePacket(0, message);
+					MSG_TEXT messagePacket(networkId, message);
 					int size = sizeof(MSG_TEXT);
 					if (udpSocket.Send(&messagePacket, size))
 					{

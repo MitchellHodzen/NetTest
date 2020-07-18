@@ -21,6 +21,7 @@ private:
 	
 
 	bool AttemptNewConnection(Address address, unsigned int* networkId);
+	bool UserConnected(Address address, unsigned int networkId);
 	void DisconnectSession(Address address);
 	void AcceptConnection(Address address, unsigned int networkId);
 	void RejectConnection(Address address);
