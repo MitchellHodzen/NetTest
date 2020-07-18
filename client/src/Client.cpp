@@ -67,7 +67,9 @@ void Client::SendMessage()
 				unsigned short fromPort;
 
 				unsigned int networkId;
+				bool connected = false;
 
+				//try to connect to server
 				while(!receivedResponse)
 				{
 					if (udpSocket.RecieveMessage(dataBuffer, bufferSize, &fromAddr, &fromPort))
@@ -79,57 +81,69 @@ void Client::SendMessage()
 						if (messageType == MSG_TYPE::CONNECT_RESPONSE)
 						{
 							MSG_CONNECT_RESPONSE connectResponse(dataBuffer, bufferSize);
-							networkId = connectResponse.networkId;
+							CONNECT_RESP responseType = connectResponse.response;
 
-							std::cout<<"Connected to server. Network ID: " << networkId << std::endl;
-
-							while(true)
+							if (responseType == CONNECT_RESP::ACCEPTED)
 							{
-								std::cout<<"Message to send: ";
-								std::string message;
-								getline(std::cin, message);
-								std::cout<<"Sending message..."<<std::endl;
+								networkId = connectResponse.networkId;
+								connected = true;
+								receivedResponse = true;
+								std::cout<<"Connected to server. Network ID: " << networkId << std::endl;
+							}
+							else
+							{
+								connected = false;
+								receivedResponse = true;
+								std::cout<<"Could not connect to server" << std::endl;
+							}
+						}
+					}
+				}
 
-								MSG_TEXT messagePacket(0, message);
-								int size = sizeof(MSG_TEXT);
-								if (udpSocket.Send(&messagePacket, size))
+				while(connected)
+				{
+					std::cout<<"Message to send: ";
+					std::string message;
+					getline(std::cin, message);
+					std::cout<<"Sending message..."<<std::endl;
+
+					MSG_TEXT messagePacket(0, message);
+					int size = sizeof(MSG_TEXT);
+					if (udpSocket.Send(&messagePacket, size))
+					{
+						receivedResponse = false;
+						while(!receivedResponse)
+						{
+							if (udpSocket.RecieveMessage(dataBuffer, bufferSize, &fromAddr, &fromPort))
+							{
+								std::cout<<"Message recieved from " << fromAddr << ":" << fromPort <<std::endl;
+
+								MSG_TYPE messageType = MESSAGE::DetermineMessageType(dataBuffer, bufferSize);
+
+								switch(messageType)
 								{
-									receivedResponse = false;
-									
-									while(!receivedResponse)
+									case MSG_TYPE::ACK:
 									{
-										if (udpSocket.RecieveMessage(dataBuffer, bufferSize, &fromAddr, &fromPort))
-										{
-											std::cout<<"Message recieved from " << fromAddr << ":" << fromPort <<std::endl;
-
-											MSG_TYPE messageType = MESSAGE::DetermineMessageType(dataBuffer, bufferSize);
-
-											switch(messageType)
-											{
-												case MSG_TYPE::ACK:
-												{
-													std::cout<<"Message ACK recieved"<<std::endl;
-													receivedResponse = true;
-													break;
-												}
-												case MSG_TYPE::DISCONNECT:
-												{
-													std::cout<<"Disconnected from server"<<std::endl;
-													receivedResponse = true;
-													break;
-												}
-												default:
-													break;
-											}
-										}
+										std::cout<<"Message ACK recieved"<<std::endl;
+										receivedResponse = true;
+										break;
 									}
-								}
-								else
-								{
-									std::cout<<"Failed to send packet"<<std::endl;
+									case MSG_TYPE::DISCONNECT:
+									{
+										std::cout<<"Disconnected from server"<<std::endl;
+										connected = false;
+										receivedResponse = true;
+										break;
+									}
+									default:
+										break;
 								}
 							}
 						}
+					}
+					else
+					{
+						std::cout<<"Failed to send packet"<<std::endl;
 					}
 				}
 			}

@@ -2,17 +2,17 @@
 #include "UdpSocket.h"
 #include "MessageStructs.h"
 
-Server::Server()
+Server::Server(unsigned short port)
 {
 	for (int i = 0; i < MAX_CONNECTIONS; ++i)
 	{
 		availableNetworkIds.push(i);
 	}
+	udpSocket = new UdpSocket(port);
 }
 void Server::StartServer()
 {
-	UdpSocket udpSocket(2222);
-	if (udpSocket.Initialize())
+	if (udpSocket->Initialize())
 	{
 		//receive messages
 		std::cout<<"Listening for messages"<<std::endl;
@@ -25,7 +25,7 @@ void Server::StartServer()
 
 		while(true)
 		{
-			bool receivedMessage = udpSocket.RecieveMessage(dataBuffer, bufferSize, &fromAddr, &fromPort);
+			bool receivedMessage = udpSocket->RecieveMessage(dataBuffer, bufferSize, &fromAddr, &fromPort);
 
 			if (receivedMessage)
 			{
@@ -51,50 +51,32 @@ void Server::StartServer()
 						Address address;
 						address.address = fromAddr;
 						address.port = fromPort;
+						bool failedConnection = false;
+
 						if (AttemptNewConnection(address, &networkId))
 						{
-							bool failedConnection = false;
-							if (udpSocket.SetSendAddress(fromAddr, fromPort))
-							{
-								MSG_CONNECT_RESPONSE connectResponse(networkId);
-								if(udpSocket.Send(&connectResponse, sizeof(MSG_CONNECT_RESPONSE)))
-								{
-									std::cout<<"Successfully connected " << fromAddr << ":" << fromPort << " with network ID " << networkId << std::endl;
-								}
-								else
-								{
-									std::cout<<"Failed to send connection response"<<std::endl;
-									failedConnection = true;
-								}
-							}
-							else
-							{
-								std::cout<<"Failed to set send address"<<std::endl;
-								failedConnection = true;
-							}
-
-							//If the connection failed, get back the network ID
-							if (failedConnection)
-							{
-								DisconnectSession(address);
-							}
+							AcceptConnection(address, networkId);
+						}
+						else
+						{
+							RejectConnection(address);
 						}
 						break;
 					}
 					case MSG_TYPE::TEXT:
 					{
-						std::cout<<"Message recieved from " << fromAddr << std::endl;
+						std::cout<<"Message packet recieved from " << fromAddr << ":" << fromPort <<std::endl;
 						MSG_TEXT messagePacket(dataBuffer, bufferSize);
 						std::cout<<"\tMessage Type: " << messagePacket.messageType <<std::endl;
 						std::cout<<"\tNetwork ID: " << messagePacket.networkId <<std::endl;
 						std::cout<<"\tText Buffer Length: " << messagePacket.textBufferLength <<std::endl;
 						std::cout<<"\tText: " << messagePacket.text << std::endl;
 
-						if (udpSocket.SetSendAddress(fromAddr, fromPort))
+						if (udpSocket->SetSendAddress(fromAddr, fromPort))
 						{
 							MSG_ACK ack(messagePacket.networkId);
 							std::cout<<"\tAcking message" << std::endl;
-							if(!udpSocket.Send(&ack, sizeof(MSG_ACK)))
+							if(!udpSocket->Send(&ack, sizeof(MSG_ACK)))
 							{
 								std::cout<<"Response unsuccessful"<<std::endl;
 							}
@@ -134,9 +116,54 @@ bool Server::AttemptNewConnection(Address address, unsigned int* networkId)
 	*networkId = nextNetworkId;
 	return true;
 }
+
+void Server::AcceptConnection(Address address, unsigned int networkId)
+{
+	if (udpSocket->SetSendAddress(address.address, address.port))
+	{
+		MSG_CONNECT_RESPONSE connectResponse(networkId, CONNECT_RESP::ACCEPTED);
+		if(udpSocket->Send(&connectResponse, sizeof(MSG_CONNECT_RESPONSE)))
+		{
+			std::cout<<"Successfully connected " << address.address << ":" << address.port << " with network ID " << networkId << std::endl;
+		}
+		else
+		{
+			std::cout<<"Failed to send connection response"<<std::endl;
+		}
+	}
+}
+void Server::RejectConnection(Address address)
+{
+	FreeNetworkId(address);
+	//Send a rejection packet
+	if (udpSocket->SetSendAddress(address.address, address.port))
+	{
+		std::cout<<"\tSending reject connection packet" << std::endl;
+		MSG_CONNECT_RESPONSE connectRejectResponse(0, CONNECT_RESP::REJECTED);
+		if(!udpSocket->Send(&connectRejectResponse, sizeof(MSG_CONNECT_RESPONSE)))
+		{
+			std::cout<<"Unable to send rejection packet"<<std::endl;
+		}
+	}
+}
 void Server::DisconnectSession(Address address)
 {
+	FreeNetworkId(address);
+	//Send a disconnect packet
+	if (udpSocket->SetSendAddress(address.address, address.port))
+	{
+		MSG_DISCONNECT disconnectPacket;
+		std::cout<<"\tSending disconnect packet" << std::endl;
+		if(!udpSocket->Send(&disconnectPacket, sizeof(MSG_DISCONNECT)))
+		{
+			std::cout<<"Response unsuccessful"<<std::endl;
+		}
+	}
 
+}
+
+void Server::FreeNetworkId(Address address)
+{
 	//Only disconnect if the address isn't connected
 	if (addressNetworkIdMap.find(address) != addressNetworkIdMap.end())
 	{
@@ -146,8 +173,5 @@ void Server::DisconnectSession(Address address)
 		addressNetworkIdMap.erase(address);
 		//Add the network ID back to the available network IDs
 		availableNetworkIds.push(networkId);
-
-		//Send a disconnect packet
 	}
-
 }

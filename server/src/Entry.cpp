@@ -3,7 +3,7 @@
 
 int main(int argc, char* args[])
 {
-	Server server;
+	Server server(2222);
 	server.StartServer();
 	return 0;
 }

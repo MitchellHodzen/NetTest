@@ -2,6 +2,7 @@
 #include <string>
 
 enum MSG_TYPE {INVALID = 0, CONNECT_REQUEST = 1, CONNECT_RESPONSE = 2, DISCONNECT = 3, TEXT = 4, ACK = 5};
+enum CONNECT_RESP {ACCEPTED = 0, REJECTED = 1};
 namespace MESSAGE
 {
 	MSG_TYPE DetermineMessageType(unsigned char* dataBuffer, unsigned int bufferSize)
@@ -30,12 +31,14 @@ struct MSG_CONNECT_RESPONSE
 {
 public:
 	MSG_TYPE messageType;
+	CONNECT_RESP response;
 	unsigned int networkId;
 
-	MSG_CONNECT_RESPONSE(unsigned int networkId)
+	MSG_CONNECT_RESPONSE(unsigned int networkId, CONNECT_RESP response)
 	{
 		this->messageType = MSG_TYPE::CONNECT_RESPONSE;
 		this->networkId = networkId;
+		this->response = response;
 	}
 
 	MSG_CONNECT_RESPONSE(unsigned char* dataBuffer, unsigned int bufferSize)
@@ -49,8 +52,9 @@ private:
 	{
 		this->messageType = MSG_TYPE::CONNECT_RESPONSE;
 
-		unsigned int networkId = dataBuffer[4] | (dataBuffer[5]<<8) | (dataBuffer[6]<<16) | (dataBuffer[7]<<24);
-		this->networkId = networkId;
+		this->response = (CONNECT_RESP)(networkId = dataBuffer[4] | (dataBuffer[5]<<8) | (dataBuffer[6]<<16) | (dataBuffer[7]<<24));
+
+		this->networkId = dataBuffer[8] | (dataBuffer[9]<<8) | (dataBuffer[10]<<16) | (dataBuffer[11]<<24);
 	}
 };
 
@@ -58,27 +62,10 @@ struct MSG_DISCONNECT
 {
 public:
 	MSG_TYPE messageType;
-	unsigned int networkId;
 
-	MSG_DISCONNECT(unsigned int networkId)
+	MSG_DISCONNECT()
 	{
 		this->messageType = MSG_TYPE::DISCONNECT;
-		this->networkId = networkId;
-	}
-
-	MSG_DISCONNECT(unsigned char* dataBuffer, unsigned int bufferSize)
-	{
-		BuildFromByteArray(dataBuffer, bufferSize);
-	}
-
-private:
-
-	void BuildFromByteArray(unsigned char* dataBuffer, unsigned int bufferSize)
-	{
-		this->messageType = MSG_TYPE::DISCONNECT;
-
-		unsigned int networkId = dataBuffer[4] | (dataBuffer[5]<<8) | (dataBuffer[6]<<16) | (dataBuffer[7]<<24);
-		this->networkId = networkId;
 	}
 };
 
